@@ -5,7 +5,8 @@ import sys
 from PyQt5.QtWidgets import QApplication
 
 from PyQt5.QtWidgets import (QMainWindow, QWidget,
-        QPushButton, QLineEdit, QInputDialog, QDialog, QDialogButtonBox, QComboBox, QFormLayout, QLabel, QSpinBox, QTreeView, QVBoxLayout, QHBoxLayout)
+        QPushButton, QLineEdit, QInputDialog, QDialog, QDialogButtonBox, QComboBox, QCalendarWidget,
+        QFormLayout, QLabel, QSpinBox, QTreeView, QVBoxLayout, QHBoxLayout)
 
 from PyQt5 import QtCore
 import myDatabase
@@ -13,8 +14,9 @@ import myDatabase
 
 class myDialog(QDialog):
 
-    def __init__(self, l):
+    def __init__(self, l, title = "question"):
         super().__init__()
+        super().setWindowTitle(title)
         layout = QFormLayout()
         super().setLayout(layout)
         for i, j in l:
@@ -73,31 +75,44 @@ class MainWindow(QMainWindow):
 
         tmpLayout = QHBoxLayout()
         mainLayout.addLayout(tmpLayout)
+        tmpLayout.addWidget(self._buttonAdd)
         #tmpLayout.addWidget(self._combox)
         #tmpLayout.addLayout(self._layout)
         for i, j in self._buttons:
             tmpLayout.addWidget(i)
 
 
-    #Темы лекций дисциплин семестра X
+    #Количество товара с наименованием X в поставках
     def on1(self):
-        l = [("popa", QComboBox())]
-        l[0][1].addItems(self._dataBase.products_in_supply()) 
-        d = myDialog(l)
+        str_disc = QLabel("Количество товара с наименованием X в поставках")
+        l = [("discription", str_disc), ("product :", QComboBox())]
+        l[1][1].addItems(self._dataBase.products_in_supply()) 
+        d = myDialog(l, "first")
         if d.exec() == QDialog.Accepted:
-            model = self._dataBase.first(l[0][1].currentText())
+            model = self._dataBase.first(l[1][1].currentText())
             self.setModel(model)
 
-    #Имена и стажи преподавателей дисциплин на факультете с названием X,отсортированные по убыванию стажа
+    #Адреса складов, работающих с магазинами, организации которых содержат подстроку X (например, «ИП»), отсортированные по цене товара
     def on2(self):
-        model = self._dataBase.second(self._qComboBox.currentText())
-        self.setModel(model)
+        str_disc = QLabel("Адреса складов, работающих с магазинами,\n организации которых содержат подстроку X (например, «ИП»),\n отсортированные по цене товара")
+        l = [("discription", str_disc), ("sub string in companies names", QLineEdit())]
+        d = myDialog(l, "second")
+        if d.exec() == QDialog.Accepted:
+            model = self._dataBase.second(l[1][1].text())
+            self.setModel(model)
 
-    #Названия дисциплин, темы семинаров и номера семестров, которые посещает студент с именем X до начала недели Y
+    #Оценка товаров, наименования товаров и адреса магазинов, в которых работают кассиры с зарплатой меньше, чем X, поставки в которые ожидаются позднее даты Y
     def on3(self):
-        model = self._dataBase.third(self._qSpinBox.value(), self._qComboBox.currentText())
-        self.setModel(model)
-
+        str_disc = QLabel("Оценка товаров, наименования товаров и адреса магазинов,\n в которых работают кассиры с зарплатой меньше, чем X,\n поставки в которые ожидаются позднее даты Y")
+        l = [("discription", str_disc), ("salary less then", QSpinBox()), ("later then", QCalendarWidget())]
+        l[1][1].setMaximum(self._dataBase.max_salary()+1)
+        d = myDialog(l, "third")
+        if d.exec() == QDialog.Accepted:
+            #tmp_date = l[1][1].datetime()
+            #date = datetime.datetime()
+            #model = self._dataBase.first(l[0][1].value(), date)
+            model = self._dataBase.third(l[1][1].value(), l[2][1].selectedDate().toPyDate())
+            self.setModel(model)
 
     def setModel(self, model):
         if model is None:
