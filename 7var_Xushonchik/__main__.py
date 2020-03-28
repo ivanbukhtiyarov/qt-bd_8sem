@@ -120,23 +120,14 @@ class MainWindow(QMainWindow):
         self._view.setModel(model)
 
     def getItems(self):
-        items = self._dataBase.subjects()
-
-        num, ok = QInputDialog.getInt(self, "week", "enter a number")
+        num, ok = QInputDialog.getInt(self, "stars", "enter a number", 0, 0, 5)
         if not ok:
             return None
-        room, ok = QInputDialog.getText(self, "room", "enter a room name")
-        if not ok:
-            return None
-        subject, ok = QInputDialog.getItem(self, "subject", "select a subject", items, 0, False)
-        if not ok:
-            return None
-        
-        topic, ok = QInputDialog.getText(self, "topic", "enter a topic")
-        if not ok:
-            return None
-
-        self._dataBase.add(num, room, subject, topic)
+        l = [("Author", QLineEdit()), ("product :", QComboBox())]
+        l[1][1].addItems(self._dataBase.products()) 
+        d = myDialog(l, "add")
+        if d.exec() == QDialog.Accepted:
+            self._dataBase.add(num, l[0][1].text(), l[1][1].currentText())
 
 
 if __name__ == "__main__":

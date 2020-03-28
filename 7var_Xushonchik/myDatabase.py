@@ -135,12 +135,11 @@ class MyDataBase:
     def max_salary(self):
         return Cashier.select(fn.MAX(Cashier.salary)).scalar()
 
-    def add(self, num, room, sub, topic):
-        finded_sub = self.find_sub(sub)
-        if finded_sub is None:
+    def add(self, num, author, prod):
+        finded = Product.select().where(Product.name == prod).get()
+        if finded is None:
             return
-        sem = Seminar(subject = self.find_sub(sub), week = num, room = room, topic = topic)
-        sem.save()
+        Rate.create(author = author, stars = num, product = finded)
 
     #def query(self, string):
         #res = None
