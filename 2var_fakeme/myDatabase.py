@@ -3,6 +3,8 @@ from myModel import *
 
 from peewee import *
 
+import datetime
+
 
 mainDatabase = SqliteDatabase(None)
 
@@ -10,119 +12,89 @@ class BaseModel(Model):
     class Meta:
         database = mainDatabase
 
-class Faculty(BaseModel):
-    #faculty_id = AutoField()
-    name = CharField(unique = True)
-    house = CharField()
-    institute = CharField()
+#Мероприятие
+class Event(BaseModel):
+    name = CharField()                           #Название
+    date = DateTimeField()                       #Дата
 
-class Student(BaseModel):
-    name = CharField(unique = True)
-    #faculty = ForeignKeyField(Faculty, column_name="faculty_id")
-    faculty = ForeignKeyField(Faculty)
+#Повар
+class Cook(BaseModel):
+    name = CharField(unique = True)              #Имя
+    restaurant = CharField()                     #Ресторан
+    #backref = "dish" in Dish                    #Блюдо
 
-class Teacher(BaseModel):
-    #teacher_id = AutoField()
-    name = CharField(unique = True)
-    experience = IntegerField()
-    #subject = ForeignKeyField(Subject, column_name="sub_id")
+#Блюдо
+class Dish(BaseModel):
+    name = CharField(unique = True)              #Название
+    calorie = IntegerField()                     #Калорийность
+    cook = ForeignKeyField(Cook, backref="dish") #Повар
+    event = ForeignKeyField(Event)               #Мероприятие
 
-class Subject(BaseModel):
-    #sub_id = AutoField()
-    name = CharField(unique = True)
-    #teacher = ForeignKeyField(Teacher, column_name="teacher_id", backref="subject")
-    teacher = ForeignKeyField(Teacher, backref="subject")
-    sem = IntegerField()
-    #faculty = ForeignKeyField(Faculty, column_name="faculty_id")
-    faculty = ForeignKeyField(Faculty)
+#Напиток
+class Drink(BaseModel):
+    name = CharField(unique = True)              #Название
+    count = IntegerField()                       #Количество
+    event = ForeignKeyField(Event)               #Мероприятие
 
-class Seminar(BaseModel):
-    #subject = ForeignKeyField(Subject, column_name="sub_id")
-    subject = ForeignKeyField(Subject)
-    week = IntegerField()
-    topic = CharField()
-    room = CharField()
+#Ингредиент
+class Ingredient(BaseModel):
+    name = CharField(unique = True)              #Название
+    count = IntegerField()                       #Количество
+    dish = ForeignKeyField(Dish)                 #Блюдо
 
-class Lecture(BaseModel):
-    #subject = ForeignKeyField(Subject, column_name="sub_id")
-    subject = ForeignKeyField(Subject)
-    topic = CharField()
-    duration = IntegerField()
-
+#Рецепт
+class Recipe(BaseModel):
+    author = CharField()                         #Автор
+    dish = ForeignKeyField(Dish)                 #Блюдо
 
 def initDatabase():
-    print("init")
-    tmp_f = Faculty(name = "I-tech", house = "k", institute = "kib")
-    tmp_f.save()
-    tmp_t = Teacher(name = "Putin", experience = 9999)
-    tmp_t.save()
-    tmp_s = Subject(name = "TU", teacher = tmp_t, sem = 8, faculty = tmp_f)
-    tmp_s.save()
-    tmp_st = Student(name = "Petya", faculty = tmp_f)
-    tmp_st.save()
-    tmp_l = Lecture(topic = "slepping", subject = tmp_s, duration = 8)
-    tmp_l.save()
-
+    cook = Cook.create(name = "Papanister", restaurant = "shokoladnik")
+    event = Event.create(name = "vruchenie oscara", date = datetime.datetime(2020, 2, 1, 12, 0))
+    dish = Dish.create(name = "myasnoi salat oshibka sapera", calorie = 100, cook = cook, event = event)
+    drink = Drink.create(name = "russian vodka", count = 25, event = event)
+    ingredient = Ingredient.create(name = "list'ya salata", count = 55, dish = dish)
+    recipe = Recipe.create(author = "Papanister", dish = dish)
 
 class MyDataBase:
     def __init__(self, name):
-        #mainDatabase = SqliteDatabase(name)
         mainDatabase.init(name)
         mainDatabase.connect()
-        mainDatabase.create_tables([Faculty, Teacher, Subject, Seminar, Lecture, Student])
+        mainDatabase.create_tables(BaseModel.__subclasses__())
         try:
             initDatabase()
         except IntegrityError:
-            pass
-
-        #self._query = {"first":self.first, "second":self.second, "third":self.third}
-
-    def subjects(self):
-        return [i.name for i in Subject.select()]
-
-    def faculties(self):
-        return [i.name for i in Faculty.select()]
-
-    def find_sub(self, name):
-        return Subject.select().where(Subject.name == name).get()
-
-    def students(self):
-        return [i.name for i in Student.select()]
-
-    def add(self, num, room, sub, topic):
-        finded_sub = self.find_sub(sub)
-        if finded_sub is None:
-            return
-        sem = Seminar(subject = self.find_sub(sub), week = num, room = room, topic = topic)
-        sem.save()
-
-    #def query(self, string):
-        #res = None
-        #try:
-            #res = self._query(num)()
-        #except KeyError:
+            print("init canceled")
             #pass
-        #return res
 
-    def first(self, num):
-        #tmp = [i.topic for i in Lecture.select().where(Lecture.subject.sem == num)]
-        tmp = [i.topic for i in Lecture.select().join(Subject).where(Subject.sem == num)]
-        print(tmp)
-        return MyModel(tmp, ['topics'])
+    def dishes(self):
+        return [i.name for i in Dish.select()]
 
-    def second(self, name):
-        tmp_f = Faculty.select().where(Faculty.name == name).get()
-        #tmp = [(i.name, i.experience) for i in Teacher.select().where(Teacher.subject.faculty == tmp_f).ordered_by(Teacher.experience)]
-        tmp = [(i.name, i.experience) for i in Teacher.select().join(Subject).where(Subject.faculty == tmp_f).order_by(Teacher.experience)]
-        print(tmp)
-        return MyModel(tmp, ['name', 'experience'])
+    def authors(self):
+        return [i.author for i in Recipe.select(Recipe.author).distinct()]
 
-    def third(self, num, name):
-        tmp_st = Student.select().where(Student.name == name).get()
-        #tmp_sub = [i for i in Subject.select().where(Subject.faculty == tmp_st.faculty)]
-        tmp = [(i.subject.name, i.topic, i.subject.sem) for i in Seminar.select().join(Subject).where(Subject.faculty == tmp_st.faculty & Seminar.week < num)]
+    def maxDrinkCount(self):
+        return Drink.select(fn.MAX(Drink.count)).scalar()
+
+    def add(self, num, dish_name, name):
+        try:
+            dish = Dish.get(Dish.name == dish_name)
+        except DoesNotExist:
+            return
+        Ingredient.create(name = name, count = num, dish = dish)
+
+    def first(self, name):
+        tmp = [(i.name, i.calorie) for i in Dish.select().join(Recipe).where(Recipe.author == name)]
         print(tmp)
-        #tmp = [(i.name, i.experience) for i in Teacher.select().where(Teacher.subject.faculty == tmp_f)]
-        return MyModel(tmp, ['subject', 'topic', 'sem'])
+        return MyModel(tmp, ['name', 'cal'])
+
+    def second(self, sub_str):
+        tmp = [(i.cook.restaurant, i.cook.name, i.name) for i in Dish.select().join(Cook).where(Dish.name.contains(sub_str)).order_by(Cook.restaurant)]
+        print(tmp)
+        return MyModel(tmp, ['restaurant', 'cook name', 'dish name'])
+
+    def third(self, num, date):
+        tmp = [(i.dish.event.name, i.name, i.count) for i in Ingredient.select().join(Dish).join(Event).join(Drink).where((Drink.count < num) & (Event.date > date)).distinct()]
+        print(tmp)
+        return MyModel(tmp, ['event name', 'ingredient name', 'count'])
 
 

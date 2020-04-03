@@ -1,7 +1,7 @@
 
 from PyQt5 import QtCore
 #from PyQt5.QtCore import QAbstractItemModel, QVariant
-from PyQt5.QtCore import QAbstractTableModel, QVariant
+from PyQt5.QtCore import QAbstractTableModel, QVariant, QModelIndex
 
 #class MyModel(QAbstractItemModel):
 class MyModel(QAbstractTableModel):
@@ -10,10 +10,10 @@ class MyModel(QAbstractTableModel):
         self.list = items.copy()
         self.colLabels = labels.copy()
 
-    def rowCount(self, parent):
+    def rowCount(self, parent = QModelIndex()):
         return len(self.list)
 
-    def columnCount(self, parent):
+    def columnCount(self, parent = QModelIndex()):
         return len(self.colLabels)
     
     def headerData(self, section, orientation, role):

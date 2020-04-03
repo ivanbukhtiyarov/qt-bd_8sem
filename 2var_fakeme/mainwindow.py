@@ -1,6 +1,6 @@
 
 from PyQt5.QtWidgets import (QMainWindow, QWidget,
-        QPushButton, QLineEdit, QInputDialog, QComboBox, QLabel, QSpinBox, QTreeView, QVBoxLayout, QHBoxLayout)
+        QPushButton, QLineEdit, QInputDialog, QComboBox, QLabel, QSpinBox, QCalendarWidget, QTreeView, QVBoxLayout, QHBoxLayout)
 
 import myDatabase
 
@@ -14,12 +14,20 @@ class MainWindow(QMainWindow):
         self._dictexe = {"f":(self.firstQuery, self.firstExe), "s":(self.secondQuery, self.secondExe), "t":(self.thirdQuery, self.thirdExe)}
 
         self._view = QTreeView()
+
         self._buttonAdd = QPushButton("Add")
         self._buttonAdd.clicked.connect(self.getItems)
+        self._addSpinBox = QSpinBox()
+        self._addComboBox = QComboBox()
+        self._addComboBox.addItems(self._dataBase.dishes())
 
         self._layout = QHBoxLayout()
         self._qSpinBox = QSpinBox()
         self._qComboBox = QComboBox()
+        self._qLineEdit = QLineEdit()
+        self._qCalendarWidget = QCalendarWidget()
+
+        self._queryDisc = QLabel()
 
         self._buttonExe = QPushButton("Exe")
         self._buttonExe.clicked.connect(self.onButtonExe)
@@ -46,14 +54,20 @@ class MainWindow(QMainWindow):
 
         tmpLayout = QHBoxLayout()
         mainLayout.addLayout(tmpLayout)
-        tmpLayout.addWidget(QLabel("add shit"))
+        tmpLayout.addWidget(QLabel("Добавления ингредиента"))
+        tmpLayout.addWidget(self._addSpinBox)
+        tmpLayout.addWidget(self._addComboBox)
         tmpLayout.addWidget(self._buttonAdd)
+
+        mainLayout.addWidget(self._queryDisc)
 
         tmpLayout = QHBoxLayout()
         mainLayout.addLayout(tmpLayout)
         tmpLayout.addWidget(self._combox)
         tmpLayout.addLayout(self._layout)
         tmpLayout.addWidget(self._buttonExe)
+
+        self.adjustSize()
 
     def comboChanged(self, text):
         self._dictexe[text][0]()
@@ -64,66 +78,66 @@ class MainWindow(QMainWindow):
             self._layout.itemAt(0).widget().setParent(None)
             #self._layout.removeItem(self._layout.itemAt(0))
 
-    #Темы лекций дисциплин семестра X
+    #Названия и калорийность блюд по рецептам автора X
     def firstQuery(self):
+        self._queryDisc.setText("Названия и калорийность блюд по рецептам автора X")
         self.clearLayout()
-        self._qSpinBox.setValue(0)
-        self._layout.insertWidget(1,self._qSpinBox)
-
-    def firstExe(self):
-        model = self._dataBase.first(self._qSpinBox.value())
-        self.setModel(model)
-
-    #Имена и стажи преподавателей дисциплин на факультете с названием X,отсортированные по убыванию стажа
-    def secondQuery(self):
-        self.clearLayout()
+        #self._qSpinBox.setValue(0)
+        #self._layout.insertWidget(1,self._qSpinBox)
         self._qComboBox.clear()
-        self._qComboBox.addItems(self._dataBase.faculties())
+        self._qComboBox.addItems(self._dataBase.authors())
         self._layout.insertWidget(1,self._qComboBox)
 
-    def secondExe(self):
-        model = self._dataBase.second(self._qComboBox.currentText())
+    def firstExe(self):
+        model = self._dataBase.first(self._qComboBox.currentText())
+        #model = self._dataBase.first(self._qSpinBox.value())
         self.setModel(model)
 
-    #Названия дисциплин, темы семинаров и номера семестров, которые посещает студент с именем X до начала недели Y
-    def thirdQuery(self):
+    #Названия ресторанов, к которым относятся повара, готовящие блюда содержащие в
+    #названии подстроку X (например, «картофельный»), отсортированные по алфавиту
+    def secondQuery(self):
+        self._queryDisc.setText("Названия ресторанов, к которым относятся повара,\n готовящие блюда содержащие в названии подстроку X (например, «картофельный»),\n отсортированные по алфавиту")
         self.clearLayout()
-        self._qComboBox.clear()
-        self._qComboBox.addItems(self._dataBase.students())
-        self._layout.insertWidget(1, self._qComboBox)
+        self._qLineEdit.clear()
+        self._layout.insertWidget(1,self._qLineEdit)
+
+    def secondExe(self):
+        model = self._dataBase.second(self._qLineEdit.text())
+        self.setModel(model)
+
+    #Названия и количества ингредиентов и названия мероприятий, на которых разливают
+    #напитки в количестве меньше X после даты Y
+    def thirdQuery(self):
+        self._queryDisc.setText("Названия и количества ингредиентов и названия мероприятий, на которых разливают\n напитки в количестве меньше X после даты Y")
+        self.clearLayout()
+        self._layout.insertWidget(1, self._qCalendarWidget)
+        self._qSpinBox.setMaximum(self._dataBase.maxDrinkCount()*10)
         self._qSpinBox.setValue(0)
         self._layout.insertWidget(1, self._qSpinBox)
 
     def thirdExe(self):
-        model = self._dataBase.third(self._qSpinBox.value(), self._qComboBox.currentText())
+        model = self._dataBase.third(self._qSpinBox.value(), self._qCalendarWidget.selectedDate().toPyDate())
         self.setModel(model)
 
 
     def setModel(self, model):
         if model is None:
             return
+        self._view.setVisible(False)
         self._view.setModel(model)
+        for i in range(model.columnCount()):
+            self._view.resizeColumnToContents(i)
+        self._view.setVisible(True)
+        self.adjustSize()
 
     def onButtonExe(self):
         self._dictexe[self._combox.currentText()][1]()
 
 
     def getItems(self):
-        items = self._dataBase.subjects()
+        name, ok = QInputDialog.getText(self, "ingredient", "enter name")
+        if not ok:
+            return 
 
-        num, ok = QInputDialog.getInt(self, "week", "enter a number")
-        if not ok:
-            return None
-        room, ok = QInputDialog.getText(self, "room", "enter a room name")
-        if not ok:
-            return None
-        subject, ok = QInputDialog.getItem(self, "subject", "select a subject", items, 0, False)
-        if not ok:
-            return None
-        
-        topic, ok = QInputDialog.getText(self, "topic", "enter a topic")
-        if not ok:
-            return None
-
-        self._dataBase.add(num, room, subject, topic)
+        self._dataBase.add(self._addSpinBox.value(), self._addComboBox.currentText(), name)
 

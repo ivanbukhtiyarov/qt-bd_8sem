@@ -111,7 +111,7 @@ class MyDataBase:
         return MyModel(tmp, ['topics'])
 
     def second(self, name):
-        tmp_f = Faculty.select().where(Faculty.name == name).get()
+        tmp_f = Faculty.select().where(Faculty.name == name).get() #not works
         #tmp = [(i.name, i.experience) for i in Teacher.select().where(Teacher.subject.faculty == tmp_f).ordered_by(Teacher.experience)]
         tmp = [(i.name, i.experience) for i in Teacher.select().join(Subject).where(Subject.faculty == tmp_f).order_by(Teacher.experience)]
         print(tmp)
@@ -120,7 +120,7 @@ class MyDataBase:
     def third(self, num, name):
         tmp_st = Student.select().where(Student.name == name).get()
         #tmp_sub = [i for i in Subject.select().where(Subject.faculty == tmp_st.faculty)]
-        tmp = [(i.subject.name, i.topic, i.subject.sem) for i in Seminar.select().join(Subject).where(Subject.faculty == tmp_st.faculty & Seminar.week < num)]
+        tmp = [(i.subject.name, i.topic, i.subject.sem) for i in Seminar.select().join(Subject).where((Subject.faculty == tmp_st.faculty) & (Seminar.week < num))]
         print(tmp)
         #tmp = [(i.name, i.experience) for i in Teacher.select().where(Teacher.subject.faculty == tmp_f)]
         return MyModel(tmp, ['subject', 'topic', 'sem'])
