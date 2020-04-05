@@ -5,10 +5,8 @@ from PyQt5.QtWidgets import (QMainWindow, QWidget,
 import myDatabase
 
 class MainWindow(QMainWindow):
-
     def __init__(self, dataBaseName):
         super().__init__()
-        #self._dataBase = SqliteDatabase(dataBaseName)
         self._dataBase = myDatabase.MyDataBase(dataBaseName)
 
         self._dictexe = {"f":(self.firstQuery, self.firstExe), "s":(self.secondQuery, self.secondExe), "t":(self.thirdQuery, self.thirdExe)}
@@ -71,12 +69,10 @@ class MainWindow(QMainWindow):
 
     def comboChanged(self, text):
         self._dictexe[text][0]()
-        #self._dictexe[self._combox.currentText()]()
 
     def clearLayout(self):
         while self._layout.count() > 0:
             self._layout.itemAt(0).widget().setParent(None)
-            #self._layout.removeItem(self._layout.itemAt(0))
 
     #Названия и калорийность блюд по рецептам автора X
     def firstQuery(self):
@@ -90,7 +86,6 @@ class MainWindow(QMainWindow):
 
     def firstExe(self):
         model = self._dataBase.first(self._qComboBox.currentText())
-        #model = self._dataBase.first(self._qSpinBox.value())
         self.setModel(model)
 
     #Названия ресторанов, к которым относятся повара, готовящие блюда содержащие в

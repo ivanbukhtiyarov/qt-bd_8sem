@@ -1,10 +1,11 @@
 
 from PyQt5 import QtCore
-#from PyQt5.QtCore import QAbstractItemModel, QVariant
 from PyQt5.QtCore import QAbstractTableModel, QVariant, QModelIndex
 
-#class MyModel(QAbstractItemModel):
+#Стандартная модель с переопределенными где надо функциями
 class MyModel(QAbstractTableModel):
+    #Считаем что items - двойной список(список строк)
+    #labels - просто имена колонок
     def __init__(self, items, labels):
         super().__init__()
         self.list = items.copy()
@@ -26,6 +27,7 @@ class MyModel(QAbstractTableModel):
             return QVariant()
         val = ''
         if role == QtCore.Qt.DisplayRole:
+            #просто вернем значение из списка(только постараемся избежать ошибок)
             try:
                 tmp = self.list[index.row()]
                 val = tuple(tmp)[index.column()]
