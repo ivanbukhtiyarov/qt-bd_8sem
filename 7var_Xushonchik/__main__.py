@@ -55,13 +55,13 @@ class MainWindow(QMainWindow):
         self._view = QTreeView()
 
         #Тупа кнопочки чтоб по ним там все ето
-        self._buttonAdd = QPushButton("Add")
+        self._buttonAdd = QPushButton("Добавление рейтинга")
         #По этой кнопке будем добавлять в базу что надо
         self._buttonAdd.clicked.connect(self.addToDatabase)
 
         #А вот подъехали кнопочки для запросиков
         #листик состит так [(Кнопочка, функция которая вызовется на клик), ...]
-        self._buttons = [(QPushButton("Exe1"), self.on1), (QPushButton("Exe2"), self.on2), (QPushButton("Exe3"), self.on3)]
+        self._buttons = [(QPushButton("Запрос 1"), self.on1), (QPushButton("Запрос 2"), self.on2), (QPushButton("Запрос 3"), self.on3)]
         #А тут свяжем все кнопочки с функциями через коннект(Специальная КуТэМаджик)
         for i, j in self._buttons:
             i.clicked.connect(j)
@@ -74,7 +74,7 @@ class MainWindow(QMainWindow):
         #Размеры окошка ширина, высота, позиция от левого края экрана, от правого
         self.setGeometry(300,300,200,200)
         #Тупа заголовок
-        self.setWindowTitle('ShitName')
+        self.setWindowTitle('7 Вариант (Магазины)')
         #Ниже надо раскоментить чтоб поставить иконку
         #self.setWindowIcon(QIcon('Файл с иконкой'))
 
@@ -105,12 +105,12 @@ class MainWindow(QMainWindow):
         #Напишем чисто по приколу описание запроса к бд
         str_disc = QLabel("Количество товара с наименованием X в поставках")
         #соберем листик для нашего диалога
-        l = [("discription", str_disc), ("product :", QComboBox())]
+        l = [("Запрос: ", str_disc), ("Продукт: ", QComboBox())]
         #Комбо бокс это типа выпадающий списков в котором юзер выбирает в данном случае 1 элемент
         #Заполним его товарами которые есть в поставках из бд
         l[1][1].addItems(self._myDatabase.products_in_supply()) 
         #Соберем наш диаложек. Напоминаю "first" - это заголовок
-        d = myDialog(l, "first")
+        d = myDialog(l, "Первый запрос")
         #А вот почему мы выбрали диалог exec() - вызывает его, ждет когда его закроют кнопочками ok или cancel и если ok(acceped) то выполним запрос
         if d.exec() == QDialog.Accepted:
             #Выполняем первый запрос у бд и получаем от бд модель которую вставим в нашу view
@@ -121,8 +121,8 @@ class MainWindow(QMainWindow):
     def on2(self):
         str_disc = QLabel("Адреса складов, работающих с магазинами,\n организации которых содержат подстроку X (например, «ИП»),\n отсортированные по цене товара")
         #Лайн Едит это строчка для редактирования и написание текста
-        l = [("discription", str_disc), ("sub string in companies names", QLineEdit())]
-        d = myDialog(l, "second")
+        l = [("Запрос", str_disc), ("Подстрока в имени компании", QLineEdit())]
+        d = myDialog(l, "Второй запрос")
         if d.exec() == QDialog.Accepted:
             model = self._myDatabase.second(l[1][1].text())
             self.setModel(model)
@@ -131,11 +131,11 @@ class MainWindow(QMainWindow):
     def on3(self):
         str_disc = QLabel("Оценка товаров, наименования товаров и адреса магазинов,\n в которых работают кассиры с зарплатой меньше, чем X,\n поставки в которые ожидаются позднее даты Y")
         #Слендарь это календарь
-        l = [("discription", str_disc), ("salary less then", QSpinBox()), ("later then", QCalendarWidget())]
+        l = [("Запрос", str_disc), ("Зарплата меньше чем ", QSpinBox()), ("Позже даты", QCalendarWidget())]
         #Спин бокс Это спец поле с чиселками которое мы ограничим сверху макс зп + 1
         #Макс зп возьмем у датабазы
         l[1][1].setMaximum(self._myDatabase.max_salary()+1)
-        d = myDialog(l, "third")
+        d = myDialog(l, "Третий запрос")
         if d.exec() == QDialog.Accepted:
             model = self._myDatabase.third(l[1][1].value(), l[2][1].selectedDate().toPyDate())
             self.setModel(model)
@@ -151,14 +151,14 @@ class MainWindow(QMainWindow):
         #Инпут Диалог нужен тут только потому что в задании он есть
         #"stars" - заголовок, "enter a ..." - описание, 0 - начальное значение, 0 - мин, 5 - макс.
         #Диалог спросит у пользователя int от 0 до 5. Если нажали ok(кнопочка диаложка) то ok = True если cancel - ok = False
-        num, ok = QInputDialog.getInt(self, "stars", "enter a number", 0, 0, 5)
+        num, ok = QInputDialog.getInt(self, "Рейтинг (0-5)", "Введите рейтинг", 0, 0, 5)
         #Если ok = False то вывалимся из функции ибо юзер расхотел
         if not ok:
             return None
         #Соберем на диаложек тут все знакомо разве что описание добавления нет патамушта
-        l = [("Author", QLineEdit()), ("product :", QComboBox())]
+        l = [("Автор", QLineEdit()), ("Продукт :", QComboBox())]
         l[1][1].addItems(self._myDatabase.products()) 
-        d = myDialog(l, "add")
+        d = myDialog(l, "Добавление")
         if d.exec() == QDialog.Accepted:
             #добавим в датабазу
             self._myDatabase.add(num, l[0][1].text(), l[1][1].currentText())
