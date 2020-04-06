@@ -103,18 +103,18 @@ class MyDataBase:
     def first(self, name):
         tmp = [(i.name, i.calorie) for i in Dish.select().join(Recipe).where(Recipe.author == name)]
         #print(tmp)
-        return MyModel(tmp, ['name', 'cal'])
+        return MyModel(tmp, ['Название', 'ККал.'])
 
     #Второй запрос
     def second(self, sub_str):
         tmp = [(i.cook.restaurant, i.cook.name, i.name) for i in Dish.select().join(Cook).where(Dish.name.contains(sub_str)).order_by(Cook.restaurant)]
         #print(tmp)
-        return MyModel(tmp, ['restaurant', 'cook name', 'dish name'])
+        return MyModel(tmp, ['Ресторан', 'Имя повара', 'Блюдо'])
 
     #Третий запрос
     def third(self, num, date):
         tmp = [(i.dish.event.name, i.name, i.count) for i in Ingredient.select().join(Dish).join(Event).join(Drink).where((Drink.count < num) & (Event.date > date)).distinct()]
         #print(tmp)
-        return MyModel(tmp, ['event name', 'ingredient name', 'count'])
+        return MyModel(tmp, ['Мероприятие', 'Ингредиент', 'Кол-во'])
 
 

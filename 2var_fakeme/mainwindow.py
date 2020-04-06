@@ -9,11 +9,11 @@ class MainWindow(QMainWindow):
         super().__init__()
         self._dataBase = myDatabase.MyDataBase(dataBaseName)
 
-        self._dictexe = {"f":(self.firstQuery, self.firstExe), "s":(self.secondQuery, self.secondExe), "t":(self.thirdQuery, self.thirdExe)}
+        self._dictexe = {"первый запрос":(self.firstQuery, self.firstExe), "второй запрос":(self.secondQuery, self.secondExe), "третий запрос":(self.thirdQuery, self.thirdExe)}
 
         self._view = QTreeView()
 
-        self._buttonAdd = QPushButton("Add")
+        self._buttonAdd = QPushButton("Добавить")
         self._buttonAdd.clicked.connect(self.getItems)
         self._addSpinBox = QSpinBox()
         self._addComboBox = QComboBox()
@@ -27,7 +27,7 @@ class MainWindow(QMainWindow):
 
         self._queryDisc = QLabel()
 
-        self._buttonExe = QPushButton("Exe")
+        self._buttonExe = QPushButton("Исполнить")
         self._buttonExe.clicked.connect(self.onButtonExe)
 
         self._combox = QComboBox()
@@ -38,7 +38,7 @@ class MainWindow(QMainWindow):
 
     def initUi(self):
         self.setGeometry(300,300,200,200)
-        self.setWindowTitle('ShitName')
+        self.setWindowTitle('Ресторан')
         #self.setWindowIcon(QIcon(''))
 
         w = QWidget()
@@ -130,7 +130,7 @@ class MainWindow(QMainWindow):
 
 
     def getItems(self):
-        name, ok = QInputDialog.getText(self, "ingredient", "enter name")
+        name, ok = QInputDialog.getText(self, "Ингредиент", "Введите название")
         if not ok:
             return 
 
